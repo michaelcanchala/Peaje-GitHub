@@ -1,0 +1,62 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity semaforo01 is
+    Port (
+        clk : in STD_LOGIC;          -- Reloj
+        reset : in STD_LOGIC;        -- Reset
+        semaforo : out STD_LOGIC_VECTOR(1 downto 0); -- LEDs del semáforo (verde: semaforo(1), rojo: semaforo(0))
+        barrera : out STD_LOGIC_VECTOR(1 downto 0)  -- LEDs de la barrera (abierto: barrera(1), cerrado: barrera(0))
+    );
+end semaforo01;
+
+architecture Behavioral of semaforo01 is
+
+    -- Estados del semáforo
+    type estados_semaforo is (VERDE, ROJO);
+    signal estado_actual_semaforo : estados_semaforo := VERDE;
+
+    -- Estados de la barrera
+    type estados_barrera is (ABIERTA, CERRADA);
+    signal estado_actual_barrera : estados_barrera := ABIERTA;
+
+begin
+
+    -- Proceso para controlar el semáforo y la barrera
+    proceso(clk, reset)
+    begin
+        if reset = '1' then
+            estado_actual_semaforo <= VERDE;
+            estado_actual_barrera <= ABIERTA;
+        elsif rising_edge(clk) then
+            -- Cambio de estado del semáforo
+            case estado_actual_semaforo is
+                when VERDE =>
+                    semaforo <= "10"; -- Verde encendido, rojo apagado
+                    if estado_actual_barrera = CERRADA then
+                        estado_actual_semaforo <= ROJO;
+                    end if;
+                when ROJO =>
+                    semaforo <= "01"; -- Rojo encendido, verde apagado
+                    if estado_actual_barrera = ABIERTA then
+                        estado_actual_semaforo <= VERDE;
+                    end if;
+            end case;
+
+            -- Cambio de estado de la barrera
+            case estado_actual_barrera is
+                when ABIERTA =>
+                    barrera <= "10"; -- Abierta encendido, cerrada apagado
+                    if estado_actual_semaforo = ROJO then
+                        estado_actual_barrera <= CERRADA;
+                    end if;
+                when CERRADA =>
+                    barrera <= "01"; -- Cerrada encendido, abierta apagado
+                    if estado_actual_semaforo = VERDE then
+                        estado_actual_barrera <= ABIERTA;
+                    end if;
+            end case;
+        end if;
+    end process;
+
+end Behavioral;

@@ -1,0 +1,41 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+entity div_500ms is
+    Port (
+        clk : in STD_LOGIC;
+        rst : in STD_LOGIC;
+        led : out STD_LOGIC
+    );
+end div_500ms;
+
+architecture arch_div_500ms of div_500ms is
+    constant CLOCK_FREQUENCY : integer := 100000000; -- Frecuencia del reloj en Hz (por ejemplo, 100 MHz)
+    constant TARGET_FREQUENCY : integer := 2; -- Frecuencia objetivo (en Hz), en este caso, 0.5 Hz = 2 segundos
+    signal counter : integer range 0 to CLOCK_FREQUENCY / (2 * TARGET_FREQUENCY) - 1 := 0; -- Contador para el divisor de frecuencia
+    signal ms_counter : integer range 0 to 1999 := 0; -- Contador para los milisegundos
+begin
+    process (clk, rst)
+    begin
+        if rst = '1' then
+            counter <= 0;
+            ms_counter <= 0;
+            led <= '0';
+        elsif rising_edge(clk) then
+            if counter = CLOCK_FREQUENCY / (2 * TARGET_FREQUENCY) - 1 then
+                counter <= 0;
+                if ms_counter = 1999 then
+                    ms_counter <= 0;
+                else
+                    ms_counter <= ms_counter + 1;
+                end if;
+            else
+                counter <= counter + 1;
+            end if;
+        end if;
+    end process;
+
+    led <= '1' when ms_counter < 500 else '0'; -- Enciende el LED durante los primeros 500 ms
+end arch_div_500ms;

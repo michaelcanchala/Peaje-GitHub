@@ -1,0 +1,18 @@
+|semaforo01
+clk => barrera_cerrada~reg0.CLK
+clk => barrera_abierta~reg0.CLK
+clk => semaforo_rojo~reg0.CLK
+clk => semaforo_verde~reg0.CLK
+clk => estado_actual_semaforo.CLK
+reset => estado_actual_semaforo.ACLR
+reset => barrera_cerrada~reg0.ENA
+reset => semaforo_verde~reg0.ENA
+reset => semaforo_rojo~reg0.ENA
+reset => barrera_abierta~reg0.ENA
+cambio_color => estado_actual_semaforo.DATAIN
+semaforo_verde <= semaforo_verde~reg0.DB_MAX_OUTPUT_PORT_TYPE
+semaforo_rojo <= semaforo_rojo~reg0.DB_MAX_OUTPUT_PORT_TYPE
+barrera_abierta <= barrera_abierta~reg0.DB_MAX_OUTPUT_PORT_TYPE
+barrera_cerrada <= barrera_cerrada~reg0.DB_MAX_OUTPUT_PORT_TYPE
+
+

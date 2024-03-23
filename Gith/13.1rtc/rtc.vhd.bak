@@ -1,0 +1,150 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+
+entity rtc is
+    Port (
+        clk50mhz: in STD_LOGIC;
+        clk: out STD_LOGIC
+    );
+end rtc;
+
+architecture rtl of rtc is
+    constant max_count: INTEGER := 50000000;
+    signal count: INTEGER range 0 to max_count;
+    signal clk_state: STD_LOGIC := '0';
+begin
+    gen_clock: process(clk50mhz, clk_state, count)
+    begin
+        if clk50mhz'event and clk50mhz = '1' then
+            if count < max_count then 
+                count <= count + 1;
+            else
+                clk_state <= not clk_state;
+                count <= 0;
+            end if;
+        end if;
+    end process;
+
+    persecond: process (clk_state)
+    begin
+        clk <= clk_state;
+    end process;
+end rtl;
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+
+entity Cronometro is
+    Port (
+        clk: in STD_LOGIC;
+        rst: in STD_LOGIC;
+        start: in STD_LOGIC;
+        stop: in STD_LOGIC;
+        display: out STD_LOGIC_VECTOR(13 downto 0) -- Dos displays de 7 segmentos para mostrar hasta 99 segundos
+    );
+end Cronometro;
+
+architecture Behavioral of Cronometro is
+    signal clk_1hz: STD_LOGIC := '0'; -- Señal de reloj de 1 Hz generada por el divisor de frecuencia
+    signal count : INTEGER range 0 to 999999 := 0; -- Contador del cronómetro (hasta 999999 para contar segundos)
+    signal running : BOOLEAN := FALSE; -- Indicador de si el cronómetro está corriendo
+    signal seg_tens : STD_LOGIC_VECTOR(6 downto 0); -- Señal para el display de 7 segmentos para las decenas de segundos
+    signal seg_units : STD_LOGIC_VECTOR(6 downto 0); -- Señal para el display de 7 segmentos para las unidades de segundos
+begin
+    -- Instanciar el divisor de frecuencia de 1 segundo
+    div_1sec: entity work.div_1seg port map (
+        clk50mhz => clk,
+        clk => clk_1hz
+    );
+
+    process (clk_1hz, rst)
+    begin
+        if rst = '1' then
+            count <= 0;
+            running <= FALSE;
+        elsif rising_edge(clk_1hz) then
+            if running then
+                count <= count + 1;
+            end if;
+        end if;
+    end process;
+
+    process (start, stop, count)
+    begin
+        if start = '1' then
+            running <= TRUE; -- Iniciar el cronómetro
+        elsif stop = '1' then
+            running <= FALSE; -- Detener el cronómetro
+        end if;
+    end process;
+
+    process (count)
+    begin
+        if count = 1000000 then
+            seg_tens <= "1000000"; -- Mostrar "9" en el display de 7 segmentos para las decenas de segundos cuando el contador alcance 1000000 (1 segundo)
+            seg_units <= "1000000"; -- Mostrar "9" en el display de 7 segmentos para las unidades de segundos cuando el contador alcance 1000000 (1 segundo)
+        else
+            seg_tens <= std_logic_vector(to_unsigned(count/100000, 7)); -- Mostrar las decenas de segundos en el display de 7 segmentos
+            seg_units <= std_logic_vector(to_unsigned((count mod 100000)/10000, 7)); -- Mostrar las unidades de segundos en el display de 7 segmentos
+        end if;
+    end process;
+
+    -- Lógica para la visualización de los dígitos en los displays de 7 segmentos
+    process (seg_tens, seg_units)
+    begin
+        -- Decenas de segundos
+        case seg_tens is
+            when "0000000" =>
+                display(6 downto 0) <= "1000000"; -- 0
+            when "0000001" =>
+                display(6 downto 0) <= "1111001"; -- 1
+            when "0000010" =>
+                display(6 downto 0) <= "0100100"; -- 2
+            when "0000011" =>
+                display(6 downto 0) <= "0110000"; -- 3
+            when "0000100" =>
+                display(6 downto 0) <= "0011001"; -- 4
+            when "0000101" =>
+                display(6 downto 0) <= "0010010"; -- 5
+            when "0000110" =>
+               
+            display(6 downto 0) <= "0000010"; -- 6
+            when "0000111" =>
+                display(6 downto 0) <= "1111000"; -- 7
+            when "0001000" =>
+                display(6 downto 0) <= "0000000"; -- 8
+            when "0001001" =>
+                display(6 downto 0) <= "0010000"; -- 9
+            when others =>
+                display(6 downto 0) <= "1111111"; -- Apagar todos los segmentos si el conteo supera el límite mostrable
+        end case;
+
+        -- Unidades de segundos
+        case seg_units is
+            when "0000000" =>
+                display(13 downto 7) <= "1000000"; -- 0
+            when "0000001" =>
+                display(13 downto 7) <= "1111001"; -- 1
+            when "0000010" =>
+                display(13 downto 7) <= "0100100"; -- 2
+            when "0000011" =>
+                display(13 downto 7) <= "0110000"; -- 3
+            when "0000100" =>
+                display(13 downto 7) <= "0011001"; -- 4
+            when "0000101" =>
+                display(13 downto 7) <= "0010010"; -- 5
+            when "0000110" =>
+                display(13 downto 7) <= "0000010"; -- 6
+            when "0000111" =>
+                display(13 downto 7) <= "1111000"; -- 7
+            when "0001000" =>
+                display(13 downto 7) <= "0000000"; -- 8
+            when "0001001" =>
+                display(13 downto 7) <= "0010000"; -- 9
+            when others =>
+                display(13 downto 7) <= "1111111"; -- Apagar todos los segmentos si el conteo supera el límite mostrable
+        end case;
+    end process;
+end Behavioral;

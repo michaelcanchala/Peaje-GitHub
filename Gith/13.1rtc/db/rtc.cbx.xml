@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<LOG_ROOT>
+	<PROJECT NAME="rtc">
+		<CBX_INST_ENTRY INSTANCE_NAME="|rtc|lpm_divide:Div0" CBX_FILE_NAME="lpm_divide_agm.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|rtc|lpm_divide:Mod0" CBX_FILE_NAME="lpm_divide_h8m.tdf"/>
+	</PROJECT>
+</LOG_ROOT>

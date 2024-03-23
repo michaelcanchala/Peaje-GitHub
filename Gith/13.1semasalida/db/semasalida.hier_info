@@ -1,0 +1,6 @@
+|semasalida
+LED_Verde << estado_siguiente.DB_MAX_OUTPUT_PORT_TYPE
+LED_Rojo << estado_siguiente.DB_MAX_OUTPUT_PORT_TYPE
+Boton => estado_siguiente.CLK
+
+
